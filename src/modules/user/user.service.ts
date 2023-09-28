@@ -1,11 +1,4 @@
-import { Injectable } from '@nestjs/common'
-import { CreateLoginDto } from './dto/create-login.dto'
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class UserService {
-  constructor() {}
-
-  async login(createLoginDto: CreateLoginDto) {
-    return createLoginDto
-  }
-}
+export class UserService {}

@@ -1,43 +1,56 @@
-import { CanActivate, ExecutionContext, Inject, Injectable, UnauthorizedException } from '@nestjs/common'
-import { ConfigType } from '@nestjs/config'
-import { Reflector } from '@nestjs/core'
-import { jwtConfig } from './constant'
+import { ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common'
+import { AuthGuard } from '@nestjs/passport'
+import { IS_IGNORE_VERIFY_KEY, jwtConfig, jwtName } from './constant'
 import { JwtService } from '@nestjs/jwt'
-import { REQUEST_USER_KEY } from 'src/constant'
-import { Request } from 'express'
-import { IS_PUBLIC_KEY } from './common/public.decorator'
-
+import { Reflector } from '@nestjs/core'
+export type IAuthRequest = Request & {
+  headers: { authorization: string }
+}
 @Injectable()
-export class AuthGuard implements CanActivate {
+export class JwtAuthGuard extends AuthGuard(jwtName) {
   constructor(
-    private readonly reflector: Reflector,
-    private readonly jwtService: JwtService,
-    @Inject(jwtConfig.secret)
-    private readonly jwtConfiguration: ConfigType<typeof jwtConfig>
-  ) {}
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    // 看看是否是不需要提供token的公共请求
-    const isPublic = this.reflector.get(IS_PUBLIC_KEY, context.getHandler())
-    if (isPublic) return true
-
-    // 验证token
+    private jwtService: JwtService,
+    private reflector: Reflector
+  ) {
+    super()
+  }
+  async canActivate(context: ExecutionContext): Promise<any> {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_IGNORE_VERIFY_KEY, [
+      context.getHandler(),
+      context.getClass()
+    ])
     const request = context.switchToHttp().getRequest()
     const token = this.extractTokenFromHeader(request)
+
+    if (isPublic) {
+      try {
+        const payload = await this.jwtService.verifyAsync(token, {
+          secret: jwtConfig.secret
+        })
+        request['userInfo'] = payload
+      } catch (e) {
+        return true
+      }
+    }
+
     if (!token) {
       throw new UnauthorizedException()
     }
+
     try {
-      const payload = this.jwtService.verifyAsync(token, this.jwtConfiguration)
-      request[REQUEST_USER_KEY] = payload
-    } catch (e) {
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: jwtConfig.secret
+      })
+      // 所有请求都可以用request['userInfo']获取到用户信息
+      request['userInfo'] = payload
+    } catch {
       throw new UnauthorizedException()
     }
-    return true
+    return super.canActivate(context)
   }
 
-  private extractTokenFromHeader(req: Request): string | undefined {
-    const { headers } = req
-    const [_, token] = headers.authorization?.split(' ') ?? []
-    return token
+  private extractTokenFromHeader(request: IAuthRequest): string | undefined {
+    const [type, token] = request.headers.authorization?.split(' ') || []
+    return type === 'Bearer' ? token : null
   }
 }

@@ -1,12 +1,15 @@
-import { AuthGuard } from './modules/auth/auth.guard'
 import { Module } from '@nestjs/common'
 import { SequelizeModule } from '@nestjs/sequelize'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
-import { UserModule } from './modules/user/user.module'
-import { AuthModule } from './modules/auth/auth.module'
 import { getEnvConfig } from './config/env'
 import { APP_GUARD } from '@nestjs/core'
+import { JwtModule } from '@nestjs/jwt'
+import { AuthController } from './modules/auth/auth.controller'
+import { AuthService } from './modules/auth/auth.service'
+import { AuthModule } from './modules/auth/auth.module'
+import { UserController } from './modules/user/user.controller';
+import { UserModule } from './modules/user/user.module';
 getEnvConfig()
 @Module({
   imports: [
@@ -17,20 +20,22 @@ getEnvConfig()
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
-      // models: [User], // 模型位置,
-      synchronize: true,
-      autoLoadModels: true
+      models: [], // 模型位置,
+      synchronize: true
+      // autoLoadModels: true
     }),
-    UserModule,
-    AuthModule
+    JwtModule,
+    AuthModule,
+    UserModule
   ],
-  controllers: [AppController],
+  controllers: [AppController, AuthController, UserController],
   providers: [
     AppService,
-    {
-      provide: APP_GUARD,
-      useClass: AuthGuard
-    }
+    AuthService
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: AuthGuard
+    // }
   ]
 })
 export class AppModule {}

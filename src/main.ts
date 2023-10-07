@@ -3,8 +3,8 @@ import { AppModule } from './app.module'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { HttpExceptionFilter } from './common/filter/http-exception.filter'
 import { VersioningType } from '@nestjs/common'
-import * as morgan from 'morgan'
 import { ValidationPipe } from '@nestjs/common'
+import { Response } from './common/interceptor/response'
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
   app.enableVersioning({
@@ -12,6 +12,7 @@ async function bootstrap() {
   })
   // 接口统一前缀
   app.setGlobalPrefix('api')
+  app.useGlobalInterceptors(new Response())
   app.useGlobalFilters(new HttpExceptionFilter())
   app.useGlobalPipes(new ValidationPipe())
   // 跨域

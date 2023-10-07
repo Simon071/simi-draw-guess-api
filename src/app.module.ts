@@ -8,8 +8,11 @@ import { JwtModule } from '@nestjs/jwt'
 import { AuthController } from './modules/auth/auth.controller'
 import { AuthService } from './modules/auth/auth.service'
 import { AuthModule } from './modules/auth/auth.module'
-import { UserController } from './modules/user/user.controller';
-import { UserModule } from './modules/user/user.module';
+import { JwtAuthGuard } from './modules/auth/auth.guard'
+import { UserController } from './modules/user/user.controller'
+import { UserModule } from './modules/user/user.module'
+import { UserService } from './modules/user/user.service'
+import { User } from './modules/user/entity/user.entity'
 getEnvConfig()
 @Module({
   imports: [
@@ -20,22 +23,21 @@ getEnvConfig()
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_DATABASE,
-      models: [], // 模型位置,
+      models: [User], // 模型位置,
       synchronize: true
       // autoLoadModels: true
     }),
-    JwtModule,
     AuthModule,
-    UserModule
+    UserModule,
+    JwtModule
   ],
   controllers: [AppController, AuthController, UserController],
   providers: [
     AppService,
-    AuthService
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: AuthGuard
-    // }
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard
+    }
   ]
 })
 export class AppModule {}

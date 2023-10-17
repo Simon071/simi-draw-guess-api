@@ -10,6 +10,7 @@ async function bootstrap() {
   app.enableVersioning({
     type: VersioningType.URI
   })
+
   // 接口统一前缀
   app.setGlobalPrefix('api')
   app.useGlobalInterceptors(new Response())

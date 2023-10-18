@@ -47,13 +47,15 @@ export class SyncGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
    * @param client
    */
   handleDisconnect(client: Socket) {
-    const { leftUser, lastUserList } = this.syncService.removeUser(client.id)
+    console.log('🚀 ~ file: sync.gateway.ts:50 ~ SyncGateway ~ handleDisconnect ~ handleDisconnect:', client.id)
 
-    // 广播用户已经离开
-    this.server.emit('userLeft', {
-      leftUser,
-      userList: lastUserList
-    })
+    // const { leftUser, lastUserList } = this.syncService.removeUser(client.id)
+
+    // // 广播用户已经离开
+    // this.server.emit('userLeft', {
+    //   leftUser,
+    //   userList: lastUserList
+    // })
   }
 
   /**

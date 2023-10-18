@@ -50,7 +50,11 @@ export class SyncService {
    * 添加用户到用户列表
    */
   addUser(user: User) {
-    this.userList.push(user)
+    const { userInfo } = user
+    if (!this.userList.find(item => item.userInfo.uid === userInfo.uid)) {
+      this.userList.push(user)
+      return
+    }
   }
 
   /**

@@ -1,4 +1,0 @@
-import { SetMetadata } from '@nestjs/common'
-
-export const IS_PUBLIC_KEY = 'is_ignore_verify_key'
-export const Public = () => SetMetadata(IS_PUBLIC_KEY, true)
